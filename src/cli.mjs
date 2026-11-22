@@ -1,11 +1,13 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { findChrome } from './core/chrome.mjs';
-import { ensureChrome, goto, LOGIN_URL, readCookies, waitForLogin } from './core/auth.mjs';
-import { dataDir, profileDir } from './core/paths.mjs';
+import { ensureChrome, goto, hasLoginCookie, LOGIN_URL, readCookies, waitForLogin } from './core/auth.mjs';
+import { dataDir, jobsDir, profileDir } from './core/paths.mjs';
 import { readRuntime } from './core/runtime.mjs';
+import { openSession } from './core/session.mjs';
+import { searchJobs } from './core/search.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8'));
@@ -15,6 +17,39 @@ function notImplemented(name) {
     io.stdout(`「${name}」尚未实现\n`);
     return 0;
   };
+}
+
+export function parseFlags(args) {
+  const flags = {};
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (!arg.startsWith('--')) continue;
+    const key = arg.slice(2);
+    const next = args[i + 1];
+    if (next !== undefined && !next.startsWith('--')) {
+      flags[key] = next;
+      i++;
+    } else {
+      flags[key] = true;
+    }
+  }
+  return flags;
+}
+
+function timestamp() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+
+function safeName(value) {
+  return String(value).replace(/[\\/:*?"<>|\s]+/g, '_').slice(0, 40);
+}
+
+function table(jobs) {
+  const header = ['标题', '薪资', '区域', '公司', 'id'].join('\t');
+  const rows = jobs.map((j) => [j.title, j.salaryRaw || '-', j.area || '-', j.company || '-', j.id].join('\t'));
+  return [header, ...rows].join('\n');
 }
 
 export const COMMANDS = {
@@ -51,7 +86,45 @@ export const COMMANDS = {
   },
   search: {
     describe: '搜索职位列表并保存为 JSON',
-    run: notImplemented('search'),
+    run: async (args, io) => {
+      const flags = parseFlags(args);
+      if (!flags.query) {
+        io.stderr('用法：dsh-boss-job search --query <关键词> [--city 101210100] [--pages 1] [--json]\n');
+        return 1;
+      }
+      const chromePath = flags.chrome || findChrome({ env: io.env });
+      if (!chromePath) {
+        io.stderr('未找到 Chrome：请先安装 Google Chrome，或用 --chrome <path> 指定路径。\n');
+        return 2;
+      }
+      const session = await openSession({ chromePath, env: io.env, url: 'https://www.zhipin.com/web/geek/jobs' });
+      try {
+        const cookies = await readCookies(session.port);
+        if (!hasLoginCookie(cookies)) {
+          io.stderr('未检测到登录态，请先运行 `dsh-boss-job login`。\n');
+          return 3;
+        }
+        const { jobs, warnings } = await searchJobs({
+          cdp: session.cdp,
+          query: String(flags.query),
+          city: String(flags.city || '101210100'),
+          pages: Number(flags.pages || 1),
+        });
+        for (const warning of warnings) io.stderr(`[warn] ${warning}\n`);
+        const dir = join(jobsDir(timestamp(), io.env));
+        mkdirSync(dir, { recursive: true });
+        const file = join(dir, `search-${safeName(flags.query)}.json`);
+        writeFileSync(file, JSON.stringify(jobs, null, 2) + '\n', 'utf8');
+        if (flags.json) {
+          io.stdout(JSON.stringify(jobs) + '\n');
+        } else {
+          io.stdout(`${table(jobs)}\n共 ${jobs.length} 条，已保存到 ${file}\n`);
+        }
+        return jobs.length ? 0 : 4;
+      } finally {
+        session.cdp.close();
+      }
+    },
   },
   detail: {
     describe: '抓取职位详情（JD 正文、公司、招聘者活跃状态）',
