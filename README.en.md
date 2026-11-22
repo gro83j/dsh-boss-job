@@ -5,13 +5,21 @@
 [![license](https://img.shields.io/npm/l/dsh-boss-job.svg)](LICENSE)
 
 
-AI-assisted job screening for **Boss直聘** (Boss Zhipin): **interview the candidate → collect jobs through your own logged-in Chrome → hard filters + AI scoring → a shortlist you can actually apply to.**
+Fast **job screening** for **Boss直聘** (Boss Zhipin) — built for people who **already know what role they want**: interview → collect jobs through your own logged-in Chrome → hard filters + AI scoring → a shortlist you can actually apply to.
 
 This is not a scraper framework and it does not forge browser fingerprints. It launches a **separate Chrome profile**, lets *you* log in by QR code or SMS, then delegates searching and JD reading to a CLI or MCP server. Judgment stays with the AI you already use.
 
 - Zero runtime dependencies (Node ≥ 20 + local Chrome)
 - One core, three entry points: **Skill** (agent workflow), **CLI** (humans), **MCP** (Claude Code / DSH and other hosts)
 - Read-only, rate-limited, ≤ 60 JDs per round, never auto-greets or auto-applies
+
+## Who it's for — and who it's not
+
+**For you** if you already know your target role (e.g. "e-commerce operations in beauty/food, Hangzhou or Shanghai") and want to sweep that direction quickly and get a shortlist, instead of paging through listings.
+
+**Not for you** if you haven't figured out what to do yet. This project *screens*; it does not *plan*. AI's view of specific industries, roles and hiring markets is biased, and that bias cannot be removed by cheap information gathering. A wrong direction makes fast screening worthless.
+
+If you're still deciding, start with a paid career consultation, or talk to 1–2 people working in the field you're considering, then come back. The project has a deliberately restrained entry gate: with no direction it recommends counseling and at most helps you organize what you already know into a factual note — it will not plan your career or tell you "you're best suited for X".
 
 ## Why this design
 
@@ -38,7 +46,7 @@ npx dsh-boss-job setup --host claude
 
 ## Three steps
 
-- Triage before searching: asks whether you are a student and whether you already have a target role; students and career changers without a direction do a discovery step first, then the preference interview.
+- Screening tool, not career planning: it first asks whether you are a student and whether you already have a target role; without a direction it points you to counseling and only helps you organize facts.
 
 
 - Multi-select cities and directions: search several cities or regions and several role directions in one run; city names are resolved automatically.
