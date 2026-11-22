@@ -8,6 +8,7 @@ import { dataDir, jobsDir, profileDir } from './core/paths.mjs';
 import { readRuntime } from './core/runtime.mjs';
 import { openSession } from './core/session.mjs';
 import { searchJobs } from './core/search.mjs';
+import { fetchDetails } from './core/detail.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8'));
@@ -128,7 +129,57 @@ export const COMMANDS = {
   },
   detail: {
     describe: '抓取职位详情（JD 正文、公司、招聘者活跃状态）',
-    run: notImplemented('detail'),
+    run: async (args, io) => {
+      const flags = parseFlags(args);
+      let ids = [];
+      if (flags.ids) ids = String(flags.ids).split(',').map((s) => s.trim()).filter(Boolean);
+      else if (flags.file) {
+        ids = readFileSync(String(flags.file), 'utf8')
+          .split(/\r?\n/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+      if (!ids.length) {
+        io.stderr('用法：dsh-boss-job detail --ids <a,b> 或 --file ids.txt [--json]\n');
+        return 1;
+      }
+      if (ids.length > 60) {
+        io.stderr('单次最多 60 个，已截断到前 60 个。\n');
+        ids = ids.slice(0, 60);
+      }
+      const chromePath = flags.chrome || findChrome({ env: io.env });
+      if (!chromePath) {
+        io.stderr('未找到 Chrome：请先安装 Google Chrome，或用 --chrome <path> 指定路径。\n');
+        return 2;
+      }
+      const session = await openSession({ chromePath, env: io.env });
+      try {
+        const cookies = await readCookies(session.port);
+        if (!hasLoginCookie(cookies)) {
+          io.stderr('未检测到登录态，请先运行 `dsh-boss-job login`。\n');
+          return 3;
+        }
+        const { jobs, warnings, aborted } = await fetchDetails({
+          cdp: session.cdp,
+          ids,
+          warn: (m) => io.stderr(`[warn] ${m}\n`),
+        });
+        for (const warning of warnings) io.stderr(`[warn] ${warning}\n`);
+        const dir = join(jobsDir(timestamp(), io.env));
+        mkdirSync(dir, { recursive: true });
+        const file = join(dir, 'details.json');
+        writeFileSync(file, JSON.stringify(jobs, null, 2) + '\n', 'utf8');
+        if (flags.json) {
+          io.stdout(JSON.stringify(jobs) + '\n');
+        } else {
+          const rows = jobs.map((j) => ({ title: j.title, salaryRaw: j.salary, area: j.city, company: j.company, id: j.id }));
+          io.stdout(`${table(rows)}\n共 ${jobs.length} 条，已保存到 ${file}\n`);
+        }
+        return aborted ? 5 : 0;
+      } finally {
+        session.cdp.close();
+      }
+    },
   },
   filter: {
     describe: '按 preferences.json 做硬筛与评分',
