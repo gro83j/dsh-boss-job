@@ -13,8 +13,8 @@ This is not a scraper framework and it does not forge browser fingerprints. It l
 Boss Zhipin's defenses cover TLS fingerprinting, `__zp_stoken__`, font obfuscation and layered CAPTCHAs. The only approach that keeps working in 2025–2026 is **a real browser with a real session**. So the browser layer stays thin:
 
 1. Launch a dedicated Chrome profile at `~/.dsh-boss-job/chrome-profile` — never your daily profile;
-2. Reuse its live cookies and rendered DOM through CDP;
-3. Prefer plaintext salary on the detail page; never guess the obfuscated list-page glyphs.
+2. Reuse its live cookies through CDP; search calls the site's own joblist endpoint, so salaries are plaintext;
+3. Fetch detail pages for the JD, company and recruiter activity — strictly read-only.
 
 ## Install
 
