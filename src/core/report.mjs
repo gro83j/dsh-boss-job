@@ -32,6 +32,7 @@ export function renderReport({
   const cities = (prefs.cities || []).map((c) => c.name).filter(Boolean).join('、') || '未设置';
   const directions = (prefs.directions || []).join('、') || '未设置';
   const floor = prefs.salary?.floor ?? '未设置';
+  const ceiling = prefs.salary?.ceiling;
   const months = prefs.experienceMonths ?? '未填写';
 
   const lines = [
@@ -43,6 +44,7 @@ export function renderReport({
     '',
     `- 城市：${cities}`,
     `- 薪资下限：${floor}`,
+    ...(ceiling ? [`- 薪资上限（下限达到即剔除）：${ceiling}`] : []),
     `- 方向：${directions}`,
     `- 经验：${months} 个月`,
     '',

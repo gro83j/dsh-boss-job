@@ -32,11 +32,11 @@
 ```json
 {
   "cities": [{ "name": "杭州", "code": "101210100" }],
-  "salary": { "floor": 7000 },
+  "salary": { "floor": 7000, "ceiling": null },
   "directions": ["电商运营"],
   "experienceMonths": 7,
   "activeDays": 3,
-  "avoid": { "categories": ["服装"], "keywords": ["直通车"] },
+  "avoid": ["服装"],
   "keywords": ["美妆运营", "食品运营"]
 }
 ```

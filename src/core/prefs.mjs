@@ -6,7 +6,7 @@ export const DEFAULT_PREFS = {
   version: 1,
   cities: [{ name: '杭州', code: '101210100' }],
   directions: [],
-  salary: { floor: 7000, currency: 'CNY' },
+  salary: { floor: 7000, ceiling: null, currency: 'CNY' },
   experienceMonths: 0,
   activeDays: 3,
   avoid: [],
