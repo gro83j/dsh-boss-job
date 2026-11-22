@@ -38,6 +38,9 @@ npx dsh-boss-job setup --host claude
 
 ## 三步开始
 
+- 先分流再筛岗：先问「是不是学生」「有没有心仪岗位」，没方向的学生/转行者先做职业方向探索，再进入偏好访谈。
+
+
 - 城市与岗位方向都可多选：支持跨地区、多城市、多方向并行搜索，城市名自动解析。
 
 
@@ -115,3 +118,7 @@ node src/cli.mjs --help
 ## License
 
 MIT
+
+## 致谢
+
+职业方向探索（phase0.5）的方法论参考了 MIT 许可的 [career-coach](https://github.com/Jeff-Kazzee/career-coach)；本项目未复制其文本，只借鉴了「证据优先、先诊断再给方向」的流程。

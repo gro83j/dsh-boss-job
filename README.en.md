@@ -38,6 +38,9 @@ npx dsh-boss-job setup --host claude
 
 ## Three steps
 
+- Triage before searching: asks whether you are a student and whether you already have a target role; students and career changers without a direction do a discovery step first, then the preference interview.
+
+
 - Multi-select cities and directions: search several cities or regions and several role directions in one run; city names are resolved automatically.
 
 
@@ -115,3 +118,7 @@ Layout: `src/core/*` (Chrome/CDP/search/detail/filter/report), `src/mcp.mjs`, `s
 ## License
 
 MIT
+
+## Acknowledgements
+
+The phase 0.5 career-discovery flow borrows its methodology from [career-coach](https://github.com/Jeff-Kazzee/career-coach) (MIT). No text is copied; only the evidence-first, diagnose-before-recommending structure is reused.

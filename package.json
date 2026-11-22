@@ -1,6 +1,6 @@
 {
   "name": "dsh-boss-job",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "AI-assisted Boss直聘 job screening: Skill + CLI + MCP, running in your own logged-in Chrome",
   "type": "module",
   "bin": {

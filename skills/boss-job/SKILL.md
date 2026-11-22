@@ -1,6 +1,6 @@
 ---
 name: boss-job
-description: 帮用户用 Boss 直聘找工作：多轮访谈确定岗位偏好，复用本机真实登录的 Chrome 采集职位与 JD，硬筛 + AI 评分后输出可投递清单。用户说「找工作 / 筛岗位 / 投简历 / Boss 直聘 / 看看有什么岗位 / 帮我海投」时使用。
+description: 帮用户用 Boss 直聘找工作：先分流（学生？有目标岗位？），没目标就先做职业方向探索，再做多轮偏好访谈；复用本机真实登录的 Chrome 采集职位与 JD，硬筛 + AI 评分后输出可投递清单。用户说「找工作 / 筛岗位 / 投简历 / Boss 直聘 / 不知道做什么工作 / 应届生迷茫 / 想转行」时使用。
 ---
 
 # Boss 直聘筛岗（dsh-boss-job）
@@ -13,7 +13,7 @@ description: 帮用户用 Boss 直聘找工作：多轮访谈确定岗位偏好�
 2. **限速**：详情每次 ≤ 15 个，间隔 ≥ 2.5 秒；单轮总详情 ≤ 60；出现安全验证立刻停。
 3. **真实登录**：只使用本包拉起的专用 Chrome profile（`~/.dsh-boss-job/chrome-profile`），绝不动用户日常 Chrome。
 4. **不编造**：薪资、活跃状态、公司信息全部来自页面；缺失就写「未知」，不要猜。
-5. **先确认再采集**：phase1 的访谈没做完、phase2 的计划没经用户点头，不得开始抓取。
+5. **先确认再采集**：phase0.5 的分流两问 → phase1 访谈 → phase2 计划，没走完不得开始抓取。
 6. **不预设立场**：不预设行业、岗位方向、城市、薪资、级别；这些只能来自用户回答（空值=不过滤），代码里也没有默认值。
 
 ## 工作流
@@ -21,6 +21,7 @@ description: 帮用户用 Boss 直聘找工作：多轮访谈确定岗位偏好�
 | 阶段 | 文件 | 产出 |
 | --- | --- | --- |
 | 0 环境 | `references/flows/phase0-setup.md` | doctor 通过、已登录 |
+| 0.5 分流/方向 | `references/flows/phase05-career.md` | 先问「是否学生」「是否有心仪岗位」；没目标就先做方向探索，产出 `career-plan.md` |
 | 1 访谈 | `references/flows/phase1-interview.md` | `~/.dsh-boss-job/preferences.json` |
 | 2 计划 | `references/flows/phase2-plan.md` | 搜索词/城市/筛选口径，经用户确认 |
 | 3 采集 | `references/flows/phase3-collect.md` | `~/.dsh-boss-job/jobs/<时间>/jobs.json` |
