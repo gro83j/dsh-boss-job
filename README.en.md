@@ -114,6 +114,12 @@ Host config:
 
 **Why not Playwright?** A real session and a real browser fingerprint are far more durable; Playwright is more likely to be flagged as automation.
 
+## Roadmap
+
+- **Auto-greeting / resume delivery (in development)**: the author is working on it — stay tuned. The principles stay: per-item confirmation, rate limits, always interruptible, no unattended mass messaging, and only within what the platform's rules allow. **The current release is still strictly read-only** and never auto-greets or auto-applies.
+- **Screening quality**: more filter dimensions, structured JD extraction, interview questions derived from JDs.
+- Want a feature? Email 805947599@qq.com or open a GitHub Issue.
+
 ## Feedback & contact
 
 Questions, change requests, or feature ideas: email **805947599@qq.com** (or open a GitHub issue).
