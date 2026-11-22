@@ -120,6 +120,12 @@ Host config:
 - **Screening quality**: more filter dimensions, structured JD extraction, interview questions derived from JDs.
 - Want a feature? Email 805947599@qq.com or open a GitHub Issue.
 
+## About the author
+
+- Built by **大肥鱼** (a solo developer) working with AI — no team, no commercial backing.
+- This is the author's first time packaging and shipping a product on GitHub / npm. Expect rough edges in code, docs and edge cases; **quality issues may exist**. Issues and corrections are welcome, and a little patience is appreciated.
+- Try it on a small scale and sanity-check the output before relying on it for anything important.
+
 ## Feedback & contact
 
 Questions, change requests, or feature ideas: email **805947599@qq.com** (or open a GitHub issue).
