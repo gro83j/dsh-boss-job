@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { findChrome } from './core/chrome.mjs';
-import { ensureChrome, goto, hasLoginCookie, LOGIN_URL, readCookies, waitForLogin } from './core/auth.mjs';
+import { ensureChrome, goto, hasLoginCookie, loginCookieValue, LOGIN_URL, pageRequiresLogin, readCookies, waitForNewLogin } from './core/auth.mjs';
 import { dataDir, jobsDir, profileDir, reportsDir } from './core/paths.mjs';
 import { readRuntime } from './core/runtime.mjs';
 import { openSession } from './core/session.mjs';
@@ -87,10 +87,21 @@ export const COMMANDS = {
           // 窗口已可用，导航失败不阻塞登录
         }
       }
+      const initial = loginCookieValue(await readCookies(port).catch(() => []));
       io.stdout('请在弹出的 Chrome 窗口完成登录（扫码或手机验证码）。\n');
-      const ok = await waitForLogin({ readCookies: () => readCookies(port) });
+      const ok = await waitForNewLogin({ readCookies: () => readCookies(port), initial });
       if (!ok) {
         io.stderr('等待超时，请重试 `dsh-boss-job login`\n');
+        return 1;
+      }
+      // The login page also renders a guest header briefly; give it a moment to redirect.
+      let needsLogin = true;
+      for (let i = 0; i < 5 && needsLogin; i++) {
+        needsLogin = await pageRequiresLogin(port).catch(() => true);
+        if (needsLogin) await new Promise((r) => setTimeout(r, 1500));
+      }
+      if (needsLogin) {
+        io.stderr('检测到新的登录 cookie，但页面仍显示未登录；请重试 `dsh-boss-job login`\n');
         return 1;
       }
       io.stdout(`登录成功，专用 profile：${profileDir(io.env)}\n`);
@@ -117,12 +128,22 @@ export const COMMANDS = {
           io.stderr('未检测到登录态，请先运行 `dsh-boss-job login`。\n');
           return 3;
         }
-        const { jobs, warnings } = await searchJobs({
-          cdp: session.cdp,
-          query: String(flags.query),
-          city: String(flags.city || '101210100'),
-          pages: Number(flags.pages || 1),
-        });
+        let result;
+        try {
+          result = await searchJobs({
+            cdp: session.cdp,
+            query: String(flags.query),
+            city: String(flags.city || '101210100'),
+            pages: Number(flags.pages || 1),
+          });
+        } catch (err) {
+          if (err && err.name === 'LoginRequiredError') {
+            io.stderr(`${err.message}\n`);
+            return 3;
+          }
+          throw err;
+        }
+        const { jobs, warnings } = result;
         for (const warning of warnings) io.stderr(`[warn] ${warning}\n`);
         const dir = join(jobsDir(timestamp(), io.env));
         mkdirSync(dir, { recursive: true });
@@ -278,7 +299,22 @@ export const COMMANDS = {
       } else {
         lines.push('  runtime    无（首次 login 会自动创建专用 Chrome profile）');
       }
-      lines.push('  登录态     unknown（login 后检查 cookies 里的 wt2）');
+      lines.push(`  profile    ${profileDir(io.env)}`);
+      let loginState = 'unknown（没有运行中的专用 Chrome）';
+      if (rt?.port) {
+        try {
+          const cookies = await readCookies(rt.port, { timeoutMs: 2000 });
+          if (!hasLoginCookie(cookies)) {
+            loginState = '未登录（运行 login）';
+          } else {
+            const needsLogin = await pageRequiresLogin(rt.port).catch(() => false);
+            loginState = needsLogin ? '登录态已失效（运行 login 重新登录）' : '已登录';
+          }
+        } catch {
+          loginState = 'unknown（DevTools 不可达，运行 login 重开窗口）';
+        }
+      }
+      lines.push(`  登录态     ${loginState}`);
       if (!chromePath) {
         lines.push('', '未找到 Chrome：请安装 Google Chrome，或用 --chrome <path> 指定路径。');
         io.stdout(lines.join('\n') + '\n');

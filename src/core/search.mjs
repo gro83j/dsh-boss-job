@@ -1,4 +1,5 @@
 import { evalJs, sleep } from './cdp.mjs';
+import { LoginRequiredError } from './auth.mjs';
 
 export function buildSearchUrl({ query, city = '101210100', page = 1 }) {
   const u = new URL('https://www.zhipin.com/web/geek/jobs');
@@ -11,7 +12,7 @@ export function buildSearchUrl({ query, city = '101210100', page = 1 }) {
 /** Runs in the page: collect raw card fields, one object per result card. */
 export const CARD_EXPR = `(function () {
   const out = [];
-  const cards = document.querySelectorAll('li.job-card-wrapper, ul.job-list-box > li');
+  const cards = document.querySelectorAll('li.job-card-box, li.job-card-wrapper, ul.job-list-box > li');
   for (const li of cards) {
     const a = li.querySelector('a[href*="/job_detail/"]');
     const txt = (sel) => {
@@ -21,10 +22,10 @@ export const CARD_EXPR = `(function () {
     out.push({
       href: a ? a.getAttribute('href') : '',
       title: txt('.job-name') || txt('.job-title') || txt('h3'),
-      salaryRaw: txt('.salary'),
-      area: txt('.job-area'),
+      salaryRaw: txt('.job-salary') || txt('.salary'),
+      area: txt('.company-location') || txt('.job-area'),
       tags: Array.from(li.querySelectorAll('.tag-list li')).map((x) => (x.innerText || '').trim()).filter(Boolean),
-      company: txt('.company-name') || txt('.company-text .name')
+      company: txt('.boss-name') || txt('.company-name') || txt('.company-text .name')
     });
   }
   return out;
@@ -67,7 +68,7 @@ async function waitForCards(cdp, timeoutMs = 12000) {
     try {
       const n = await evalJs(
         cdp,
-        "document.querySelectorAll('li.job-card-wrapper, ul.job-list-box > li').length",
+        "document.querySelectorAll('li.job-card-box, li.job-card-wrapper, ul.job-list-box > li').length",
         { timeoutMs: 4000 },
       );
       if (n > 0) return n;
@@ -79,6 +80,16 @@ async function waitForCards(cdp, timeoutMs = 12000) {
   return 0;
 }
 
+/** Guest pages render the 登录/注册 header and mask salaries; treat them as logged out. */
+async function pageShowsGuestHeader(cdp) {
+  try {
+    const v = await evalJs(cdp, "!!document.querySelector('.header-login-btn')", { timeoutMs: 5000 });
+    return v === true;
+  } catch {
+    return false;
+  }
+}
+
 export async function searchJobs({ cdp, query, city = '101210100', pages = 1, delay = sleepRandom }) {
   const jobs = [];
   const warnings = [];
@@ -87,6 +98,9 @@ export async function searchJobs({ cdp, query, city = '101210100', pages = 1, de
     await cdp.send('Page.navigate', { url }, { timeoutMs: 15000 });
     const n = await waitForCards(cdp);
     if (n === 0) warnings.push(`第 ${page} 页没有等到职位卡片（可能无结果或页面结构变了）`);
+    if (n > 0 && (await pageShowsGuestHeader(cdp))) {
+      throw new LoginRequiredError('Boss 直聘登录态已失效（页面显示“登录/注册”，薪资被打码），请运行 dsh-boss-job login 重新登录');
+    }
     const raw = await evalJs(cdp, CARD_EXPR, { timeoutMs: 15000 });
     const parsed = parseCards(raw);
     jobs.push(...parsed.jobs);

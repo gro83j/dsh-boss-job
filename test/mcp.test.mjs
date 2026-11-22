@@ -1,6 +1,29 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { handleMessage, TOOLS } from '../src/mcp.mjs';
+
+test('直接运行 src/mcp.mjs 能作为 stdio server 响应 initialize', async () => {
+  const child = spawn(process.execPath, [fileURLToPath(new URL('../src/mcp.mjs', import.meta.url))], {
+    stdio: ['pipe', 'pipe', 'ignore'],
+  });
+  const out = await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('timeout')), 5000);
+    let data = '';
+    child.stdout.on('data', (chunk) => {
+      data += chunk;
+      if (data.includes('\n')) {
+        clearTimeout(timer);
+        child.kill();
+        resolve(data);
+      }
+    });
+    child.on('error', reject);
+    child.stdin.write('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}\n');
+  });
+  assert.match(out, /"protocolVersion":"2024-11-05"/);
+});
 
 test('initialize 返回协议版本与 tools 能力', async () => {
   const r = await handleMessage({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {} }, {});

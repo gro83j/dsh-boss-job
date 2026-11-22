@@ -1,5 +1,6 @@
 import { createInterface } from 'node:readline';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { findChrome } from './core/chrome.mjs';
 import { ensureChrome, goto, hasLoginCookie, LOGIN_URL, readCookies } from './core/auth.mjs';
 import { openSession } from './core/session.mjs';
@@ -248,3 +249,8 @@ export function startStdio({ input = process.stdin, output = process.stdout, ctx
 }
 
 export { MCP_TOOL_HANDLERS, join };
+
+// Entry point when the DSH mcp-client row runs `node <pkg>/src/mcp.mjs`.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  startStdio({});
+}
