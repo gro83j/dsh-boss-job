@@ -12,6 +12,7 @@ import { fetchDetails } from './core/detail.mjs';
 import { loadPrefs } from './core/prefs.mjs';
 import { applyFilters } from './core/filter.mjs';
 import { exportReport } from './core/report.mjs';
+import { startStdio } from './mcp.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8'));
@@ -279,7 +280,11 @@ export const COMMANDS = {
   },
   mcp: {
     describe: '以 MCP stdio server 方式运行（给宿主 agent 用）',
-    run: notImplemented('mcp'),
+    run: async () => {
+      startStdio({});
+      await new Promise(() => {});
+      return 0;
+    },
   },
 };
 
