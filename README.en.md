@@ -114,6 +114,10 @@ Host config:
 
 **Why not Playwright?** A real session and a real browser fingerprint are far more durable; Playwright is more likely to be flagged as automation.
 
+## Feedback & contact
+
+Questions, change requests, or feature ideas: email **805947599@qq.com** (or open a GitHub issue).
+
 ## Development
 
 ```bash

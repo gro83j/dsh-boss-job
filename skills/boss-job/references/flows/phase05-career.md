@@ -73,3 +73,5 @@
 - 薪资、门槛尽量用 BOSS 实时数据；查不到写「未知」，不编。
 - 用户说「算了直接找」，尊重选择，带着已有信息进 Phase 1。
 - 方法论参考了 MIT 许可的 [career-coach](https://github.com/Jeff-Kazzee/career-coach)，文本为本项目自写。
+
+> 对入口分流有疑问或建议，可联系作者：805947599@qq.com

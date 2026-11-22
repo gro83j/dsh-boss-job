@@ -1,6 +1,6 @@
 {
   "name": "dsh-boss-job",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "AI-assisted Boss直聘 job screening: Skill + CLI + MCP, running in your own logged-in Chrome",
   "type": "module",
   "bin": {
@@ -33,7 +33,10 @@
     "ai-agent"
   ],
   "license": "MIT",
-  "author": "gro83j",
+  "author": {
+    "name": "gro83j",
+    "email": "805947599@qq.com"
+  },
   "homepage": "https://github.com/gro83j/dsh-boss-job#readme",
   "repository": {
     "type": "git",
