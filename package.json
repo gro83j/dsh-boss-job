@@ -1,0 +1,30 @@
+{
+  "name": "dsh-boss-job",
+  "version": "0.1.0",
+  "description": "AI-assisted Boss直聘 job screening: Skill + CLI + MCP, running in your own logged-in Chrome",
+  "type": "module",
+  "bin": {
+    "dsh-boss-job": "src/cli.mjs",
+    "boss-job": "src/cli.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test",
+    "start": "node src/cli.mjs"
+  },
+  "keywords": [
+    "boss-zhipin",
+    "job-search",
+    "mcp",
+    "dsh-plugin",
+    "skill",
+    "chrome-cdp"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gro83j/dsh-boss-job.git"
+  }
+}
