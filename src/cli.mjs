@@ -4,11 +4,14 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { findChrome } from './core/chrome.mjs';
 import { ensureChrome, goto, hasLoginCookie, LOGIN_URL, readCookies, waitForLogin } from './core/auth.mjs';
-import { dataDir, jobsDir, profileDir } from './core/paths.mjs';
+import { dataDir, jobsDir, profileDir, reportsDir } from './core/paths.mjs';
 import { readRuntime } from './core/runtime.mjs';
 import { openSession } from './core/session.mjs';
 import { searchJobs } from './core/search.mjs';
 import { fetchDetails } from './core/detail.mjs';
+import { loadPrefs } from './core/prefs.mjs';
+import { applyFilters } from './core/filter.mjs';
+import { exportReport } from './core/report.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8'));
@@ -51,6 +54,13 @@ function table(jobs) {
   const header = ['标题', '薪资', '区域', '公司', 'id'].join('\t');
   const rows = jobs.map((j) => [j.title, j.salaryRaw || '-', j.area || '-', j.company || '-', j.id].join('\t'));
   return [header, ...rows].join('\n');
+}
+
+function readJobs(file) {
+  const parsed = JSON.parse(readFileSync(file, 'utf8'));
+  if (Array.isArray(parsed)) return parsed;
+  if (Array.isArray(parsed.jobs)) return parsed.jobs;
+  throw new Error(`无法从 ${file} 读出职位数组`);
 }
 
 export const COMMANDS = {
@@ -183,11 +193,52 @@ export const COMMANDS = {
   },
   filter: {
     describe: '按 preferences.json 做硬筛与评分',
-    run: notImplemented('filter'),
+    run: async (args, io) => {
+      const flags = parseFlags(args);
+      if (!flags.input) {
+        io.stderr('用法：dsh-boss-job filter --input details.json [--out <dir>]\n');
+        return 1;
+      }
+      const jobs = readJobs(String(flags.input));
+      const prefs = loadPrefs(io.env, { warn: (m) => io.stderr(`[warn] ${m}\n`) });
+      const { kept, rejected } = applyFilters(jobs, prefs);
+      const dir = flags.out ? String(flags.out) : jobsDir(timestamp(), io.env);
+      mkdirSync(dir, { recursive: true });
+      const file = join(dir, 'filtered.json');
+      writeFileSync(file, JSON.stringify({ kept, rejected }, null, 2) + '\n', 'utf8');
+      io.stdout(`保留 ${kept.length} 个，剔除 ${rejected.length} 个，已写入 ${file}\n`);
+      for (const item of rejected.slice(0, 10)) {
+        io.stdout(`- ${item.job.title}：${item.reasons.join('；')}\n`);
+      }
+      return 0;
+    },
   },
   export: {
     describe: '把筛选结果渲染成 Markdown 报告',
-    run: notImplemented('export'),
+    run: async (args, io) => {
+      const flags = parseFlags(args);
+      if (!flags.input) {
+        io.stderr('用法：dsh-boss-job export --input filtered.json [--eval evaluation.json] [--out <dir>]\n');
+        return 1;
+      }
+      const parsed = JSON.parse(readFileSync(String(flags.input), 'utf8'));
+      const jobs = Array.isArray(parsed) ? parsed : Array.isArray(parsed.kept) ? parsed.kept : parsed.jobs || [];
+      const rejected = Array.isArray(parsed.rejected) ? parsed.rejected : [];
+      const prefs = loadPrefs(io.env, { warn: (m) => io.stderr(`[warn] ${m}\n`) });
+      let evaluation = {};
+      if (flags.eval) evaluation = JSON.parse(readFileSync(String(flags.eval), 'utf8'));
+      const outDir = flags.out ? String(flags.out) : reportsDir(timestamp(), io.env);
+      const mdPath = exportReport({
+        outDir,
+        prefs,
+        jobs,
+        rejected,
+        evaluation,
+        generatedAt: new Date().toISOString().slice(0, 10),
+      });
+      io.stdout(`报告已写入 ${mdPath}\n`);
+      return 0;
+    },
   },
   setup: {
     describe: '把 Skill 安装到 DSH / Claude Code / Codex，并打印 MCP 配置',
