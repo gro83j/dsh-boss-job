@@ -14,17 +14,37 @@
     "test": "node --test",
     "start": "node src/cli.mjs"
   },
+  "files": [
+    "src",
+    "skills",
+    "cordis.patch.yml",
+    "README.md",
+    "README.en.md",
+    "LICENSE"
+  ],
   "keywords": [
     "boss-zhipin",
     "job-search",
     "mcp",
     "dsh-plugin",
     "skill",
-    "chrome-cdp"
+    "chrome-cdp",
+    "job-hunting",
+    "ai-agent"
   ],
   "license": "MIT",
+  "author": "gro83j",
+  "homepage": "https://github.com/gro83j/dsh-boss-job#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gro83j/dsh-boss-job.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gro83j/dsh-boss-job/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
   }
 }

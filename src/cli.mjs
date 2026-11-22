@@ -12,6 +12,7 @@ import { fetchDetails } from './core/detail.mjs';
 import { loadPrefs } from './core/prefs.mjs';
 import { applyFilters } from './core/filter.mjs';
 import { exportReport } from './core/report.mjs';
+import { installSkill, mcpConfigSnippet } from './core/setup.mjs';
 import { startStdio } from './mcp.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -243,7 +244,16 @@ export const COMMANDS = {
   },
   setup: {
     describe: '把 Skill 安装到 DSH / Claude Code / Codex，并打印 MCP 配置',
-    run: notImplemented('setup'),
+    run: async (args, io) => {
+      const flags = parseFlags(args);
+      const host = String(flags.host || 'auto');
+      const result = installSkill({ host, cwd: io.cwd, env: io.env });
+      io.stdout(`Skill 已安装：${result.target}${result.existed ? '（已存在，未覆盖）' : ''}\n`);
+      io.stdout('MCP 配置（加入 Claude Code / DSH 的 MCP 设置）：\n');
+      io.stdout(JSON.stringify(mcpConfigSnippet(), null, 2) + '\n');
+      io.stdout('下一步：dsh-boss-job login\n');
+      return 0;
+    },
   },
   doctor: {
     describe: '自检：Chrome、端口、登录态、数据目录',

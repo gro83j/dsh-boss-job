@@ -1,0 +1,28 @@
+# dsh-boss-job — DSH bundle patch layer
+#
+# Installs the Skill into DSH's skill filesystem and mounts the package's own
+# MCP stdio server. Paths are resolved from the installed npm identity anchored
+# at the DSH profile loader (`baseUrl`), never concatenated onto it.
+- insert:
+    - id: dsh-boss-job-skill
+      name: "@deepseek-ai/dsh-skill-filesystem"
+      config:
+        providerName: dsh-boss-job
+        includeDefaultRoots: true
+        bundledSkillDir: !!js process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(baseUrl).resolve('dsh-boss-job/package.json')), 'skills')
+
+    - id: dsh-boss-job-mcp
+      name: "@deepseek-ai/dsh-mcp-client"
+      config:
+        serverName: boss-job
+        transport: stdio
+        command: !!js process.execPath
+        args:
+          - !!js process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(baseUrl).resolve('dsh-boss-job/package.json')), 'src', 'mcp.mjs')
+        toolCallTimeoutMs: 120000
+        failOnStartupError: false
+        reconnect:
+          enabled: true
+          initialDelayMs: 500
+          maxDelayMs: 30000
+          maxAttempts: 5
