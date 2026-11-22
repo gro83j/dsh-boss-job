@@ -1,5 +1,10 @@
 # dsh-boss-job
 
+[![CI](https://github.com/gro83j/dsh-boss-job/actions/workflows/ci.yml/badge.svg)](https://github.com/gro83j/dsh-boss-job/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/dsh-boss-job.svg)](https://www.npmjs.com/package/dsh-boss-job)
+[![license](https://img.shields.io/npm/l/dsh-boss-job.svg)](LICENSE)
+
+
 AI-assisted job screening for **Boss直聘** (Boss Zhipin): **interview the candidate → collect jobs through your own logged-in Chrome → hard filters + AI scoring → a shortlist you can actually apply to.**
 
 This is not a scraper framework and it does not forge browser fingerprints. It launches a **separate Chrome profile**, lets *you* log in by QR code or SMS, then delegates searching and JD reading to a CLI or MCP server. Judgment stays with the AI you already use.

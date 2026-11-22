@@ -1,5 +1,10 @@
 # dsh-boss-job
 
+[![CI](https://github.com/gro83j/dsh-boss-job/actions/workflows/ci.yml/badge.svg)](https://github.com/gro83j/dsh-boss-job/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/dsh-boss-job.svg)](https://www.npmjs.com/package/dsh-boss-job)
+[![license](https://img.shields.io/npm/l/dsh-boss-job.svg)](LICENSE)
+
+
 用 AI 帮你在 Boss 直聘上筛岗位：**多轮访谈定偏好 → 复用你本机已登录的 Chrome 采集 → 硬筛 + AI 评分 → 输出可投递清单**。
 
 它不是爬虫框架，也不伪造浏览器指纹——它只负责拉起一个**独立的 Chrome profile**，让你自己扫码登录，然后把「搜索 / 看 JD / 导出报告」这些脏活交给 CLI 或 MCP，判断交给你正在用的 AI。
