@@ -2,6 +2,9 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { findChrome } from './core/chrome.mjs';
+import { dataDir } from './core/paths.mjs';
+import { readRuntime } from './core/runtime.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8'));
@@ -40,7 +43,36 @@ export const COMMANDS = {
   },
   doctor: {
     describe: '自检：Chrome、端口、登录态、数据目录',
-    run: notImplemented('doctor'),
+    run: async (_args, io) => {
+      const chromePath = findChrome({ env: io.env });
+      const lines = [
+        'dsh-boss-job doctor',
+        `  Node       ${process.version}`,
+        `  Chrome     ${chromePath || '未找到'}`,
+        `  数据目录   ${dataDir(io.env)}`,
+      ];
+      const rt = readRuntime(io.env);
+      if (rt && rt.port) {
+        let alive = false;
+        try {
+          process.kill(rt.pid, 0);
+          alive = true;
+        } catch {
+          alive = false;
+        }
+        lines.push(`  runtime    port ${rt.port} pid ${rt.pid}${alive ? '' : '（进程已退出，下次启动会重开）'}`);
+      } else {
+        lines.push('  runtime    无（首次 login 会自动创建专用 Chrome profile）');
+      }
+      lines.push('  登录态     unknown（login 后检查 cookies 里的 wt2）');
+      if (!chromePath) {
+        lines.push('', '未找到 Chrome：请安装 Google Chrome，或用 --chrome <path> 指定路径。');
+        io.stdout(lines.join('\n') + '\n');
+        return 2;
+      }
+      io.stdout(lines.join('\n') + '\n');
+      return 0;
+    },
   },
   mcp: {
     describe: '以 MCP stdio server 方式运行（给宿主 agent 用）',
