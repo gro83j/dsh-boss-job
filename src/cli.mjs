@@ -68,7 +68,8 @@ function readJobs(file) {
 export const COMMANDS = {
   login: {
     describe: '打开专用 Chrome 窗口，用你自己的 Boss 直聘账号登录',
-    run: async (_args, io) => {
+    run: async (args, io) => {
+      const flags = parseFlags(args);
       const chromePath = findChrome({ env: io.env });
       if (!chromePath) {
         io.stderr('未找到 Chrome：请先安装 Google Chrome，或用 --chrome <path> 指定路径。\n');
@@ -88,8 +89,13 @@ export const COMMANDS = {
         }
       }
       const initial = loginCookieValue(await readCookies(port).catch(() => []));
-      io.stdout('请在弹出的 Chrome 窗口完成登录（扫码或手机验证码）。\n');
-      const ok = await waitForNewLogin({ readCookies: () => readCookies(port), initial });
+      const timeoutMinutes = Number(flags.timeout || 5);
+      io.stdout(`请在弹出的 Chrome 窗口完成登录（扫码或手机验证码），最多等待 ${timeoutMinutes} 分钟。\n`);
+      const ok = await waitForNewLogin({
+        readCookies: () => readCookies(port),
+        initial,
+        timeoutMs: timeoutMinutes * 60_000,
+      });
       if (!ok) {
         io.stderr('等待超时，请重试 `dsh-boss-job login`\n');
         return 1;
@@ -345,6 +351,8 @@ export function helpText() {
     ...Object.entries(COMMANDS).map(([name, c]) => `  ${name.padEnd(width)}  ${c.describe}`),
     '',
     '示例：dsh-boss-job setup && dsh-boss-job login',
+    '      dsh-boss-job login --timeout 10   # 最多等 10 分钟扫码',
+    '      dsh-boss-job search --query 美妆运营 --pages 1 --json',
   ];
   return lines.join('\n') + '\n';
 }
