@@ -4,11 +4,7 @@
  * the user's preferences ask for it, so the same build works for any industry.
  */
 
-export const SENIOR_RE = /组长|主管|经理|总监|负责人|店长|督导|合伙人|操盘/;
-export const HARD_FLOW_RE = /(必须|要求|需要|熟悉|精通)[^。；\n]{0,20}(直通车|万相台|千川|巨量|引力魔方|付费投放)/;
-export const HIGH_EXP_RE = /3-5年|5-10年|3年以上|5年以上/;
 export const RECENT_ACTIVE_RE = /刚刚活跃|今日活跃|3日内活跃|在线/;
-export const TITLE_FLOW_RE = /投手|投流|投放|推广专员|付费推广/;
 
 /** Monthly CNY lower bound from a salary string such as `8-12K`, `7-10K·13薪`, or `150-200元/天`. */
 export function salaryMinFrom(job) {
@@ -20,6 +16,25 @@ export function salaryMinFrom(job) {
   if (daily) return Math.round(parseFloat(daily[1]) * 22);
   const hourly = text.match(/(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*元\s*\/\s*(?:时|小时)/);
   if (hourly) return Math.round(parseFloat(hourly[1]) * 8 * 22);
+  return null;
+}
+
+/**
+ * Lower bound of the experience a job asks for, in months. Understands the
+ * strings Boss uses (`1-3年`, `3年以上`, `经验不限`, `在校/应届`, `1年以内`).
+ * Returns null when the text cannot be parsed — callers must treat null as "unknown".
+ */
+export function requirementMonths(expText) {
+  const text = String(expText || '').trim();
+  if (!text) return null;
+  if (/经验不限|不限经验|应届|在校/.test(text)) return 0;
+  if (/年以内/.test(text)) return 0;
+  const range = text.match(/(\d+)\s*[-~～至]\s*(\d+)\s*年/);
+  if (range) return parseInt(range[1], 10) * 12;
+  const above = text.match(/(\d+)\s*年\s*(以上|及以上|\+)/);
+  if (above) return parseInt(above[1], 10) * 12;
+  const single = text.match(/^(\d+)\s*年$/);
+  if (single) return parseInt(single[1], 10) * 12;
   return null;
 }
 
@@ -52,22 +67,20 @@ export function applyFilters(jobs, prefs = {}) {
       reasons.push(`薪资下限 ${salaryMin} 达到上限 ${ceiling}`);
     }
 
-    if (months !== null && months < 24 && HIGH_EXP_RE.test(String(job.exp || ''))) {
-      reasons.push('经验要求偏高');
-    }
-    const title = String(job.title || '');
-    if (prefs.rejectSenior === true && SENIOR_RE.test(title)) {
-      reasons.push('级别偏高');
-    }
-    const jd = String(job.jd || '');
-    if (prefs.rejectHardFlow === true && (HARD_FLOW_RE.test(jd) || TITLE_FLOW_RE.test(title))) {
-      reasons.push('硬性投流/投放岗');
+    if (months !== null) {
+      const required = requirementMonths(job.exp);
+      if (required !== null && required > months) {
+        reasons.push(`经验要求偏高: 要求 ${job.exp || '未知'}，用户 ${months} 个月`);
+      }
     }
 
     const activeText = String(job.activeText || '');
     if (activeDays !== null && activeDays > 0 && activeText && !RECENT_ACTIVE_RE.test(activeText)) {
       reasons.push(`活跃度不足: ${activeText}`);
     }
+
+    const title = String(job.title || '');
+    const jd = String(job.jd || '');
 
     if (includesAny(title, prefs.excludeTitles)) {
       reasons.push('命中排除岗位');
@@ -79,6 +92,9 @@ export function applyFilters(jobs, prefs = {}) {
     }
     if (includesAny(titleTags, prefs.avoid)) {
       reasons.push('命中排除词');
+    }
+    if (includesAny(jd, prefs.excludeJdKeywords)) {
+      reasons.push('命中排除 JD 关键词');
     }
 
     if (reasons.length) rejected.push({ job, reasons });

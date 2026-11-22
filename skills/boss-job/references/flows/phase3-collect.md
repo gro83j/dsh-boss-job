@@ -5,7 +5,7 @@
 ## 顺序
 
 1. 列表：`dsh-boss-job search --query <词> --pages <n>`，输出到 `~/.dsh-boss-job/jobs/<时间>/jobs.json`。
-2. 硬筛：`dsh-boss-job filter --input <jobs.json>`，剔除组长/主管、助理、主播客服销售、服装等无关类目、年限明显过高。
+2. 硬筛：`dsh-boss-job filter --input <jobs.json>`，只按 `preferences.json` 里用户明确写出的条件过滤（城市/薪资/经验/活跃度/排除项）；文件里没写的不筛。
 3. 详情：`dsh-boss-job detail --input <kept.json> --limit 15`，每批 ≤ 15，间隔由 CLI 控制（2.5–4.5s）。
 4. 多批之间向用户报进度：已看 N 个、剩 M 个、有无异常。
 

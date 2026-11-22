@@ -45,8 +45,8 @@ test('未知方法返回 -32601', async () => {
 test('tools/call 包装文本结果', async () => {
   const r = await handleMessage(
     { jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'boss_prefs_get', arguments: {} } },
-    { prefs: { load: () => ({ salary: { floor: 7000 } }) } },
+    { prefs: { load: () => ({ salary: { floor: 8000 } }) } },
   );
   assert.equal(r.result.content[0].type, 'text');
-  assert.match(r.result.content[0].text, /7000/);
+  assert.match(r.result.content[0].text, /8000/);
 });

@@ -53,7 +53,7 @@ export function resolveCityEntry(cities, { name, code } = {}) {
   if (!wantedName) return null;
   const byName = cities.find((c) => normalize(c.name) === wantedName);
   if (byName) return byName;
-  // e.g. user types "杭州" while the catalogue stores "杭州" — already exact; try startsWith for long names.
+  // e.g. user types a short name while the catalogue stores a longer one; try startsWith for those.
   return cities.find((c) => normalize(c.name).startsWith(wantedName)) ?? null;
 }
 

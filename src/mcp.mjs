@@ -55,7 +55,7 @@ export const TOOLS = [
   },
   {
     name: 'boss_prefs_get',
-    description: '读取岗位偏好 preferences.json（城市/薪资下限/方向/经验）',
+    description: '读取岗位偏好 preferences.json（城市/薪资/方向/经验/排除项）',
     inputSchema: { type: 'object', properties: {} },
   },
   {

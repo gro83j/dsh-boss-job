@@ -134,14 +134,14 @@ export const COMMANDS = {
       const flags = parseFlags(args);
       const queries = splitList(flags.queries || flags.query);
       if (!queries.length) {
-        io.stderr('用法：dsh-boss-job search --queries "关键词A,关键词B" --cities 杭州,上海 [--pages 1] [--json]\n');
+        io.stderr('用法：dsh-boss-job search --queries "关键词A,关键词B" --cities "城市A,城市B" [--pages 1] [--json]\n');
         return 1;
       }
       const prefs = loadPrefs(io.env, { warn: (m) => io.stderr(`[warn] ${m}\n`) });
       const cityInputs = splitList(flags.cities || flags.city);
       const cityEntries = cityInputs.length ? cityInputs.map(toCityEntry) : (prefs.cities || []);
       if (!cityEntries.length) {
-        io.stderr('未设置城市：先完成偏好访谈（写入 ~/.dsh-boss-job/preferences.json），或用 --cities "杭州,上海" 指定。\n');
+        io.stderr('未设置城市：先完成偏好访谈（写入 ~/.dsh-boss-job/preferences.json），或用 --cities "城市A,城市B" 指定。\n');
         return 1;
       }
       const pages = Math.min(3, Math.max(1, Number(flags.pages || 1)));
@@ -402,7 +402,7 @@ export function helpText() {
     '',
     '示例：dsh-boss-job setup && dsh-boss-job login',
     '      dsh-boss-job login --timeout 10   # 最多等 10 分钟扫码',
-    '      dsh-boss-job search --query 美妆运营 --pages 1 --json',
+    '      dsh-boss-job search --query 关键词A --pages 1 --json',
   ];
   return lines.join('\n') + '\n';
 }

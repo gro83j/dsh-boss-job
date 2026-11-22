@@ -4,21 +4,21 @@ import { parseDetail } from '../src/core/detail.mjs';
 
 const raw = {
   url: 'https://www.zhipin.com/job_detail/7bf35b5bbce4db721XV83t2_GVNR.html',
-  title: '天猫产品运营',
+  title: '示例岗位',
   salary: '8-12K·13薪',
   exp: '1-3年',
   degree: '本科',
-  city: '杭州',
+  city: '示例市',
   area: '西湖区',
-  company: '悠可',
+  company: '示例公司',
   companySize: '1000-9999人',
-  companyIndustry: '电子商务',
+  companyIndustry: '示例行业',
   activeText: '今日活跃',
   bossName: '张女士',
-  bossTitle: '招聘主管',
-  tags: ['美妆日化', '天猫', '双休'],
-  jd: '岗位职责：负责天猫店铺产品运营…',
-  address: '杭州西湖区某大厦',
+  bossTitle: '招聘专员',
+  tags: ['示例标签', '双休'],
+  jd: '岗位职责：负责某类产品与店铺日常…',
+  address: '示例市示例区某大厦',
 };
 
 test('parseDetail 提取薪资区间与数字', () => {

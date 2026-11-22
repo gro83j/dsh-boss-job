@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 import { dataDir, prefsFile } from './paths.mjs';
 
 export const DEFAULT_PREFS = {
-  version: 1,
+  version: 2,
   cities: [],
   directions: [],
   salary: { floor: null, ceiling: null, currency: 'CNY' },
@@ -13,8 +13,7 @@ export const DEFAULT_PREFS = {
   keywords: [],
   excludeTitles: [],
   excludeCategories: [],
-  rejectSenior: false,
-  rejectHardFlow: false,
+  excludeJdKeywords: [],
   notes: '',
 };
 
@@ -41,10 +40,10 @@ export function savePrefs(prefs, env = process.env) {
   return file;
 }
 
-/** Shallow merge, with avoid/keywords deduped instead of concatenated blindly. */
+/** Shallow merge; list fields are deduped instead of concatenated blindly. */
 export function mergePrefs(base, patch) {
   const merged = { ...base, ...patch };
-  for (const key of ['avoid', 'keywords']) {
+  for (const key of ['avoid', 'keywords', 'excludeTitles', 'excludeCategories', 'excludeJdKeywords']) {
     if (Array.isArray(base[key]) || Array.isArray(patch[key])) {
       merged[key] = [...new Set([...(base[key] || []), ...(patch[key] || [])])];
     }

@@ -15,7 +15,7 @@ This is not a scraper framework and it does not forge browser fingerprints. It l
 
 ## Who it's for — and who it's not
 
-**For you** if you already know your target role (e.g. "e-commerce operations in beauty/food, Hangzhou or Shanghai") and want to sweep that direction quickly and get a shortlist, instead of paging through listings.
+**For you** if you already know your target role (e.g. "product manager") and want to sweep that direction quickly and get a shortlist, instead of paging through listings.
 
 **Not for you** if you haven't figured out what to do yet. This project *screens*; it does not *plan*. AI's view of specific industries, roles and hiring markets is biased, and that bias cannot be removed by cheap information gathering. A wrong direction makes fast screening worthless.
 
@@ -58,12 +58,12 @@ npx dsh-boss-job setup --host claude
 ```bash
 npx dsh-boss-job doctor      # check Chrome, port, data dir, login state
 npx dsh-boss-job login       # open the dedicated Chrome; log in yourself
-npx dsh-boss-job search --query "美妆运营" --pages 2
+npx dsh-boss-job search --query "your keyword" --pages 2
 ```
 
 Then tell a Skill-capable agent:
 
-> Find me a job. E-commerce operations in beauty or food, Hangzhou, at least 7K, no pure ad-buying roles, no apparel.
+> Find me product manager roles in Beijing or Shanghai, 15K+, no outsourcing.
 
 The agent follows the five phases in `skills/boss-job/references/flows/`: setup → interview → plan confirmation → collection → report.
 
@@ -75,7 +75,7 @@ The agent follows the five phases in `skills/boss-job/references/flows/`: setup 
 | `login` | Open the dedicated Chrome and wait for `wt2` cookie |
 | `search --query <kw> [--pages 2] [--city 101210100]` | Search and persist the job list |
 | `detail --input <jobs.json> [--limit 15]` | Fetch JDs with rate limiting, retries and abort-on-challenge |
-| `filter --input <details.json>` | Local hard filters: lead/manager titles, assistants, anchors/sales, wrong categories, senior years |
+| `filter --input <details.json>` | Filter by what `preferences.json` explicitly says (city/salary/experience/activity/exclusions); nothing unset is filtered |
 | `export --input <details.json> --evaluation <eval.json>` | Render a Markdown report with AI scores |
 | `setup [--host dsh\|claude\|codex\|cursor\|auto]` | Link the Skill and print MCP config |
 | `mcp` | Run as an MCP stdio server |
@@ -111,6 +111,8 @@ Host config:
 **Port busy?** Windows reserved range 9201–9300 is skipped automatically; set `BOSS_JOB_PORT` if needed.
 
 **Still "not logged in"?** Make sure you logged in inside the dedicated window, not your daily Chrome, then run `login` again.
+
+**Upgrading from 0.4.x?** The old `rejectSenior` / `rejectHardFlow` keys no longer work. Since 0.5.0 there are no preset hard filters: express exclusions yourself via `excludeTitles`, `excludeCategories`, `avoid` (title/tags), or `excludeJdKeywords` (JD body). `filter` also no longer assumes any experience level — it compares job requirements only when `experienceMonths` is set.
 
 **Why not Playwright?** A real session and a real browser fingerprint are far more durable; Playwright is more likely to be flagged as automation.
 

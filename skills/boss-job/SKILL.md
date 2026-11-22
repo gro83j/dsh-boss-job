@@ -35,7 +35,7 @@ description: 给「已经有目标岗位」的人快速筛 Boss 直聘职位：�
 ```bash
 dsh-boss-job doctor                       # 自检
 dsh-boss-job login                        # 打开专用 Chrome，用户自己登录
-dsh-boss-job search --queries "关键词A,关键词B" --cities 杭州,上海 --pages 1   # 多城市 × 多方向
+dsh-boss-job search --queries "关键词A,关键词B" --cities "城市A,城市B" --pages 1   # 多城市 × 多方向
 dsh-boss-job detail --input <jobs.json> --limit 15
 dsh-boss-job filter --input <details.json>
 dsh-boss-job export --input <details.json> --evaluation <eval.json>
