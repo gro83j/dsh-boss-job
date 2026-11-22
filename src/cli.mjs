@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { findChrome } from './core/chrome.mjs';
-import { dataDir } from './core/paths.mjs';
+import { ensureChrome, goto, LOGIN_URL, readCookies, waitForLogin } from './core/auth.mjs';
+import { dataDir, profileDir } from './core/paths.mjs';
 import { readRuntime } from './core/runtime.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -19,7 +20,34 @@ function notImplemented(name) {
 export const COMMANDS = {
   login: {
     describe: '打开专用 Chrome 窗口，用你自己的 Boss 直聘账号登录',
-    run: notImplemented('login'),
+    run: async (_args, io) => {
+      const chromePath = findChrome({ env: io.env });
+      if (!chromePath) {
+        io.stderr('未找到 Chrome：请先安装 Google Chrome，或用 --chrome <path> 指定路径。\n');
+        return 2;
+      }
+      const { port, pid, reused } = await ensureChrome({ chromePath, env: io.env, url: LOGIN_URL });
+      io.stdout(
+        reused
+          ? `复用已运行的专用 Chrome（端口 ${port}）\n`
+          : `已启动专用 Chrome（端口 ${port}，pid ${pid}）\n`,
+      );
+      if (reused) {
+        try {
+          await goto(port, LOGIN_URL);
+        } catch {
+          // 窗口已可用，导航失败不阻塞登录
+        }
+      }
+      io.stdout('请在弹出的 Chrome 窗口完成登录（扫码或手机验证码）。\n');
+      const ok = await waitForLogin({ readCookies: () => readCookies(port) });
+      if (!ok) {
+        io.stderr('等待超时，请重试 `dsh-boss-job login`\n');
+        return 1;
+      }
+      io.stdout(`登录成功，专用 profile：${profileDir(io.env)}\n`);
+      return 0;
+    },
   },
   search: {
     describe: '搜索职位列表并保存为 JSON',
