@@ -4,13 +4,17 @@ import { dataDir, prefsFile } from './paths.mjs';
 
 export const DEFAULT_PREFS = {
   version: 1,
-  cities: [{ name: '杭州', code: '101210100' }],
+  cities: [],
   directions: [],
-  salary: { floor: 7000, ceiling: null, currency: 'CNY' },
-  experienceMonths: 0,
-  activeDays: 3,
+  salary: { floor: null, ceiling: null, currency: 'CNY' },
+  experienceMonths: null,
+  activeDays: null,
   avoid: [],
   keywords: [],
+  excludeTitles: [],
+  excludeCategories: [],
+  rejectSenior: false,
+  rejectHardFlow: false,
   notes: '',
 };
 

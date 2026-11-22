@@ -1,11 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { dataDir, prefsFile } from '../src/core/paths.mjs';
 
-test('--version 打印 0.1.0', () => {
+test('--version 打印 package.json 版本', () => {
+  const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
   const out = execFileSync(process.execPath, ['src/cli.mjs', '--version'], { encoding: 'utf8' });
-  assert.equal(out.trim(), '0.1.0');
+  assert.equal(out.trim(), pkg.version);
 });
 
 test('--help 列出 login/search/detail/mcp/setup/doctor', () => {

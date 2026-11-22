@@ -72,3 +72,8 @@ test('parseCards 缺 href 时告警并跳过', () => {
   assert.equal(jobs.length, 0);
   assert.match(warnings[0], /缺少 job_detail 链接/);
 });
+
+test('缺少 city 时明确报错（不再默认城市）', () => {
+  assert.throws(() => buildApiUrl({ query: 'x' }), /city is required/);
+  assert.throws(() => buildSearchUrl({ query: 'x' }), /city is required/);
+});

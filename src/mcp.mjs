@@ -10,6 +10,9 @@ import { loadPrefs, mergePrefs, savePrefs } from './core/prefs.mjs';
 import { exportReport } from './core/report.mjs';
 import { dataDir, reportsDir } from './core/paths.mjs';
 import { readRuntime } from './core/runtime.mjs';
+import { readFileSync } from 'node:fs';
+
+const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
 export const PROTOCOL_VERSION = '2024-11-05';
 
@@ -195,7 +198,7 @@ export async function handleMessage(msg, ctx = {}) {
       return envelope(id, {
         protocolVersion: PROTOCOL_VERSION,
         capabilities: { tools: {} },
-        serverInfo: { name: 'dsh-boss-job', version: '0.1.0' },
+        serverInfo: { name: 'dsh-boss-job', version: pkg.version },
       });
     case 'notifications/initialized':
       return null;

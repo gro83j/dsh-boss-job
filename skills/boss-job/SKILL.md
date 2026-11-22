@@ -13,7 +13,8 @@ description: 帮用户用 Boss 直聘找工作：多轮访谈确定岗位偏好�
 2. **限速**：详情每次 ≤ 15 个，间隔 ≥ 2.5 秒；单轮总详情 ≤ 60；出现安全验证立刻停。
 3. **真实登录**：只使用本包拉起的专用 Chrome profile（`~/.dsh-boss-job/chrome-profile`），绝不动用户日常 Chrome。
 4. **不编造**：薪资、活跃状态、公司信息全部来自页面；缺失就写「未知」，不要猜。
-5. **先确认再采集**：phase2 的计划必须经用户点头后才开始抓取。
+5. **先确认再采集**：phase1 的访谈没做完、phase2 的计划没经用户点头，不得开始抓取。
+6. **不预设立场**：不预设行业、岗位方向、城市、薪资、级别；这些只能来自用户回答（空值=不过滤），代码里也没有默认值。
 
 ## 工作流
 
@@ -30,7 +31,7 @@ description: 帮用户用 Boss 直聘找工作：多轮访谈确定岗位偏好�
 ```bash
 dsh-boss-job doctor                       # 自检
 dsh-boss-job login                        # 打开专用 Chrome，用户自己登录
-dsh-boss-job search --query 美妆运营 --pages 2
+dsh-boss-job search --query <用户确认的关键词> --pages 2
 dsh-boss-job detail --input <jobs.json> --limit 15
 dsh-boss-job filter --input <details.json>
 dsh-boss-job export --input <details.json> --evaluation <eval.json>
@@ -41,4 +42,4 @@ MCP 工具：`boss_doctor`、`boss_login`、`boss_search`、`boss_detail`、`bos
 
 ## 语气
 
-像一位懂电商运营的求职顾问：先问清「你现在能做什么、想做什么、不能接受什么」，再给结论；不要一次抛 20 个问题。
+像一位通用求职顾问：先问清「你现在能做什么、想做什么、不能接受什么」，再给结论；不要一次抛 20 个问题。

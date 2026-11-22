@@ -1,7 +1,8 @@
 import { evalJs, sleep } from './cdp.mjs';
 import { LoginRequiredError } from './auth.mjs';
 
-export function buildSearchUrl({ query, city = '101210100', page = 1 }) {
+export function buildSearchUrl({ query, city, page = 1 }) {
+  if (!city) throw new Error('city is required: finish the preference interview or pass --city');
   const u = new URL('https://www.zhipin.com/web/geek/jobs');
   u.searchParams.set('query', query);
   u.searchParams.set('city', city);
@@ -10,7 +11,8 @@ export function buildSearchUrl({ query, city = '101210100', page = 1 }) {
 }
 
 /** Same-origin job list API: returns plaintext salaryDesc (the DOM salary is a PUA font). */
-export function buildApiUrl({ query, city = '101210100', page = 1, pageSize = 30 }) {
+export function buildApiUrl({ query, city, page = 1, pageSize = 30 }) {
+  if (!city) throw new Error('city is required: finish the preference interview or pass --city');
   const u = new URL('https://www.zhipin.com/wapi/zpgeek/search/joblist.json');
   u.searchParams.set('scene', '1');
   u.searchParams.set('query', query);
@@ -145,7 +147,8 @@ async function pageShowsGuestHeader(cdp) {
   }
 }
 
-export async function searchJobs({ cdp, query, city = '101210100', pages = 1, delay = sleepRandom }) {
+export async function searchJobs({ cdp, query, city, pages = 1, delay = sleepRandom }) {
+  if (!city) throw new Error('city is required: finish the preference interview or pass --city');
   const jobs = [];
   const warnings = [];
   for (let page = 1; page <= pages; page++) {

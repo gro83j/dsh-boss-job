@@ -38,6 +38,9 @@ npx dsh-boss-job setup --host claude
 
 ## Three steps
 
+- Every filter comes from the preference interview. The code ships no default city, salary or industry; anything the interview does not ask is not filtered.
+
+
 ```bash
 npx dsh-boss-job doctor      # check Chrome, port, data dir, login state
 npx dsh-boss-job login       # open the dedicated Chrome; log in yourself

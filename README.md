@@ -38,6 +38,9 @@ npx dsh-boss-job setup --host claude
 
 ## 三步开始
 
+- 所有筛选条件都来自偏好访谈，代码里没有默认城市、薪资或行业；访谈没问到的，就不筛。
+
+
 ```bash
 npx dsh-boss-job doctor      # 自检：Chrome、端口、数据目录、登录态
 npx dsh-boss-job login       # 弹出专用 Chrome，用手机验证码/微信登录

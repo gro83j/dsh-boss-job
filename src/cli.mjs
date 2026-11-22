@@ -119,7 +119,13 @@ export const COMMANDS = {
     run: async (args, io) => {
       const flags = parseFlags(args);
       if (!flags.query) {
-        io.stderr('用法：dsh-boss-job search --query <关键词> [--city 101210100] [--pages 1] [--json]\n');
+        io.stderr('用法：dsh-boss-job search --query <关键词> [--city <BOSS 城市 code>] [--pages 1] [--json]\n');
+        return 1;
+      }
+      const prefs = loadPrefs(io.env, { warn: (m) => io.stderr(`[warn] ${m}\n`) });
+      const city = String(flags.city || prefs.cities?.[0]?.code || '');
+      if (!city) {
+        io.stderr('未设置城市：先完成偏好访谈（写入 ~/.dsh-boss-job/preferences.json），或用 --city <BOSS 城市 code> 指定。\n');
         return 1;
       }
       const chromePath = flags.chrome || findChrome({ env: io.env });
@@ -139,7 +145,7 @@ export const COMMANDS = {
           result = await searchJobs({
             cdp: session.cdp,
             query: String(flags.query),
-            city: String(flags.city || '101210100'),
+            city,
             pages: Number(flags.pages || 1),
           });
         } catch (err) {
