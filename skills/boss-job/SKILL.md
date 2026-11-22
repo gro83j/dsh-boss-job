@@ -31,7 +31,7 @@ description: 帮用户用 Boss 直聘找工作：多轮访谈确定岗位偏好�
 ```bash
 dsh-boss-job doctor                       # 自检
 dsh-boss-job login                        # 打开专用 Chrome，用户自己登录
-dsh-boss-job search --query <用户确认的关键词> --pages 2
+dsh-boss-job search --queries "关键词A,关键词B" --cities 杭州,上海 --pages 1   # 多城市 × 多方向
 dsh-boss-job detail --input <jobs.json> --limit 15
 dsh-boss-job filter --input <details.json>
 dsh-boss-job export --input <details.json> --evaluation <eval.json>

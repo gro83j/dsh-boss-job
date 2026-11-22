@@ -5,6 +5,7 @@ import { findChrome } from './core/chrome.mjs';
 import { ensureChrome, goto, hasLoginCookie, LOGIN_URL, readCookies } from './core/auth.mjs';
 import { openSession } from './core/session.mjs';
 import { searchJobs } from './core/search.mjs';
+import { resolveCities } from './core/city.mjs';
 import { fetchDetails } from './core/detail.mjs';
 import { loadPrefs, mergePrefs, savePrefs } from './core/prefs.mjs';
 import { exportReport } from './core/report.mjs';
@@ -33,11 +34,12 @@ export const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        query: { type: 'string', description: '搜索关键词，如 美妆运营' },
-        city: { type: 'string', description: '城市 code，默认杭州 101210100' },
-        pages: { type: 'number', description: '页数，默认 1' },
+        queries: { type: 'array', items: { type: 'string' }, description: '多个岗位方向关键词' },
+        query: { type: 'string', description: '单个关键词（兼容旧调用；与 queries 二选一）' },
+        cities: { type: 'array', items: { type: 'string' }, description: '多个城市名或 code（国内城市，支持跨地区）' },
+        city: { type: 'string', description: '单个城市名或 code（兼容旧调用）' },
+        pages: { type: 'number', description: '每个关键词页数，默认 1，最大 3' },
       },
-      required: ['query'],
     },
   },
   {
@@ -131,13 +133,33 @@ const MCP_TOOL_HANDLERS = {
     try {
       const cookies = await readCookies(session.port);
       if (!hasLoginCookie(cookies)) throw new Error('未检测到登录态：先调用 boss_login 完成登录');
-      const { jobs, warnings } = await searchJobs({
-        cdp: session.cdp,
-        query: args.query,
-        city: args.city || '101210100',
-        pages: Number(args.pages || 1),
-      });
-      return { count: jobs.length, jobs, warnings };
+      const queries = (Array.isArray(args.queries) ? args.queries : args.query ? [args.query] : [])
+        .map((q) => String(q).trim())
+        .filter(Boolean);
+      if (!queries.length) throw new Error('queries 不能为空');
+      const cityInputs = Array.isArray(args.cities) ? args.cities : args.city ? [args.city] : [];
+      const prefs = ((ctx.prefs && ctx.prefs.load) || (() => loadPrefs(envOf(ctx))))();
+      const cityEntries = cityInputs.length ? cityInputs : prefs.cities || [];
+      if (!cityEntries.length) throw new Error('cities 不能为空：先完成偏好访谈，或传入城市名');
+      const { resolved, unknown } = await resolveCities(session.cdp, envOf(ctx), cityEntries);
+      if (!resolved.length) throw new Error(`无法识别城市：${unknown.join('、') || cityEntries.join('、')}`);
+      if (queries.length * resolved.length > 12) throw new Error('城市×关键词组合不能超过 12 组');
+      const pages = Math.min(3, Math.max(1, Number(args.pages || 1)));
+      const jobs = [];
+      const seen = new Set();
+      const warnings = unknown.length ? [`无法识别城市：${unknown.join('、')}`] : [];
+      for (const city of resolved) {
+        for (const query of queries) {
+          const result = await searchJobs({ cdp: session.cdp, query, city: city.code, pages });
+          warnings.push(...result.warnings.map((w) => `${city.name}/${query}: ${w}`));
+          for (const job of result.jobs) {
+            if (!job.id || seen.has(job.id)) continue;
+            seen.add(job.id);
+            jobs.push({ ...job, searchQuery: query, searchCity: city.name });
+          }
+        }
+      }
+      return { count: jobs.length, jobs, warnings, cities: resolved.map((c) => c.name), queries };
     } finally {
       session.cdp.close();
     }

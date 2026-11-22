@@ -38,6 +38,9 @@ npx dsh-boss-job setup --host claude
 
 ## Three steps
 
+- Multi-select cities and directions: search several cities or regions and several role directions in one run; city names are resolved automatically.
+
+
 - Every filter comes from the preference interview. The code ships no default city, salary or industry; anything the interview does not ask is not filtered.
 
 

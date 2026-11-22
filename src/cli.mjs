@@ -8,6 +8,8 @@ import { dataDir, jobsDir, profileDir, reportsDir } from './core/paths.mjs';
 import { readRuntime } from './core/runtime.mjs';
 import { openSession } from './core/session.mjs';
 import { searchJobs } from './core/search.mjs';
+import { resolveCities } from './core/city.mjs';
+import { sleep } from './core/cdp.mjs';
 import { fetchDetails } from './core/detail.mjs';
 import { loadPrefs } from './core/prefs.mjs';
 import { applyFilters } from './core/filter.mjs';
@@ -40,6 +42,18 @@ export function parseFlags(args) {
     }
   }
   return flags;
+}
+
+function splitList(value) {
+  if (value === undefined || value === null || value === true) return [];
+  return String(value)
+    .split(/[,，;；]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function toCityEntry(text) {
+  return /^\d+$/.test(text) ? { code: text } : { name: text };
 }
 
 function timestamp() {
@@ -115,17 +129,24 @@ export const COMMANDS = {
     },
   },
   search: {
-    describe: '搜索职位列表并保存为 JSON',
+    describe: '搜索职位列表（支持多个城市 × 多个关键词）',
     run: async (args, io) => {
       const flags = parseFlags(args);
-      if (!flags.query) {
-        io.stderr('用法：dsh-boss-job search --query <关键词> [--city <BOSS 城市 code>] [--pages 1] [--json]\n');
+      const queries = splitList(flags.queries || flags.query);
+      if (!queries.length) {
+        io.stderr('用法：dsh-boss-job search --queries "关键词A,关键词B" --cities 杭州,上海 [--pages 1] [--json]\n');
         return 1;
       }
       const prefs = loadPrefs(io.env, { warn: (m) => io.stderr(`[warn] ${m}\n`) });
-      const city = String(flags.city || prefs.cities?.[0]?.code || '');
-      if (!city) {
-        io.stderr('未设置城市：先完成偏好访谈（写入 ~/.dsh-boss-job/preferences.json），或用 --city <BOSS 城市 code> 指定。\n');
+      const cityInputs = splitList(flags.cities || flags.city);
+      const cityEntries = cityInputs.length ? cityInputs.map(toCityEntry) : (prefs.cities || []);
+      if (!cityEntries.length) {
+        io.stderr('未设置城市：先完成偏好访谈（写入 ~/.dsh-boss-job/preferences.json），或用 --cities "杭州,上海" 指定。\n');
+        return 1;
+      }
+      const pages = Math.min(3, Math.max(1, Number(flags.pages || 1)));
+      if (queries.length * cityEntries.length > 12) {
+        io.stderr(`组合太多（${queries.length} 个关键词 × ${cityEntries.length} 个城市），请减少到 12 组以内。\n`);
         return 1;
       }
       const chromePath = flags.chrome || findChrome({ env: io.env });
@@ -140,33 +161,56 @@ export const COMMANDS = {
           io.stderr('未检测到登录态，请先运行 `dsh-boss-job login`。\n');
           return 3;
         }
-        let result;
+        let resolved = [];
+        let unknown = [];
         try {
-          result = await searchJobs({
-            cdp: session.cdp,
-            query: String(flags.query),
-            city,
-            pages: Number(flags.pages || 1),
-          });
+          ({ resolved, unknown } = await resolveCities(session.cdp, io.env, cityEntries));
         } catch (err) {
-          if (err && err.name === 'LoginRequiredError') {
-            io.stderr(`${err.message}\n`);
-            return 3;
-          }
-          throw err;
+          io.stderr(`城市列表获取失败：${err.message}\n`);
+          return 2;
         }
-        const { jobs, warnings } = result;
+        if (unknown.length) {
+          io.stderr(`无法识别的城市：${unknown.join('、')}。请用中文城市名，或 BOSS 城市 code。\n`);
+          if (!resolved.length) return 1;
+        }
+        const jobs = [];
+        const seen = new Set();
+        const warnings = [];
+        for (let ci = 0; ci < resolved.length; ci++) {
+          const city = resolved[ci];
+          for (let qi = 0; qi < queries.length; qi++) {
+            const query = queries[qi];
+            io.stderr(`[search] ${city.name} × ${query}\n`);
+            const result = await searchJobs({ cdp: session.cdp, query, city: city.code, pages });
+            warnings.push(...result.warnings.map((w) => `${city.name}/${query}: ${w}`));
+            for (const job of result.jobs) {
+              if (!job.id || seen.has(job.id)) continue;
+              seen.add(job.id);
+              jobs.push({ ...job, searchQuery: query, searchCity: city.name });
+            }
+            if (ci !== resolved.length - 1 || qi !== queries.length - 1) {
+              await sleep(1200 + Math.floor(Math.random() * 1200));
+            }
+          }
+        }
         for (const warning of warnings) io.stderr(`[warn] ${warning}\n`);
         const dir = join(jobsDir(timestamp(), io.env));
         mkdirSync(dir, { recursive: true });
-        const file = join(dir, `search-${safeName(flags.query)}.json`);
+        const suffix = queries.length > 1 ? `-${queries.length}q` : '';
+        const file = join(dir, `search-${safeName(queries[0])}${suffix}.json`);
         writeFileSync(file, JSON.stringify(jobs, null, 2) + '\n', 'utf8');
         if (flags.json) {
           io.stdout(JSON.stringify(jobs) + '\n');
         } else {
-          io.stdout(`${table(jobs)}\n共 ${jobs.length} 条，已保存到 ${file}\n`);
+          io.stdout(`${table(jobs)}\n共 ${jobs.length} 条（${queries.length} 个关键词 × ${resolved.length} 个城市），已保存到 ${file}\n`);
         }
         return jobs.length ? 0 : 4;
+      } catch (err) {
+        if (err && err.name === 'LoginRequiredError') {
+          io.stderr(`${err.message}\n`);
+          return 3;
+        }
+        throw err;
       } finally {
         session.cdp.close();
       }
