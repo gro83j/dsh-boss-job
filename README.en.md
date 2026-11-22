@@ -4,7 +4,7 @@ AI-assisted job screening for **Boss直聘** (Boss Zhipin): **interview the cand
 
 This is not a scraper framework and it does not forge browser fingerprints. It launches a **separate Chrome profile**, lets *you* log in by QR code or SMS, then delegates searching and JD reading to a CLI or MCP server. Judgment stays with the AI you already use.
 
-- Zero runtime dependencies (Node ≥ 18 + local Chrome)
+- Zero runtime dependencies (Node ≥ 20 + local Chrome)
 - One core, three entry points: **Skill** (agent workflow), **CLI** (humans), **MCP** (Claude Code / DSH and other hosts)
 - Read-only, rate-limited, ≤ 60 JDs per round, never auto-greets or auto-applies
 
@@ -18,7 +18,7 @@ Boss Zhipin's defenses cover TLS fingerprinting, `__zp_stoken__`, font obfuscati
 
 ## Install
 
-Requires Node ≥ 18 and Google Chrome.
+Requires Node ≥ 20 and Google Chrome.
 
 ```bash
 # 1) Use directly, no global install

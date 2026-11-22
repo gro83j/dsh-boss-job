@@ -4,7 +4,7 @@
 
 它不是爬虫框架，也不伪造浏览器指纹——它只负责拉起一个**独立的 Chrome profile**，让你自己扫码登录，然后把「搜索 / 看 JD / 导出报告」这些脏活交给 CLI 或 MCP，判断交给你正在用的 AI。
 
-- 零运行时依赖（只要 Node ≥ 18 和本机 Chrome）
+- 零运行时依赖（只要 Node ≥ 20 和本机 Chrome）
 - 三个入口同一套核心：**Skill**（给 agent 的工作流）、**CLI**（人也能用）、**MCP**（给 Claude Code / DSH 等宿主）
 - 只读、限速、单轮详情 ≤ 60，绝不自动打招呼或投递
 
@@ -18,7 +18,7 @@ Boss 直聘的风控覆盖 TLS 指纹、`__zp_stoken__`、字体混淆和多层�
 
 ## 安装
 
-需要 Node ≥ 18 与本机 Google Chrome。
+需要 Node ≥ 20 与本机 Google Chrome。
 
 ```bash
 # 方式一：直接用（不需要全局安装）
