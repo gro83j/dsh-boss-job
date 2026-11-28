@@ -3,6 +3,7 @@
 [![CI](https://github.com/gro83j/dsh-boss-job/actions/workflows/ci.yml/badge.svg)](https://github.com/gro83j/dsh-boss-job/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/dsh-boss-job.svg)](https://www.npmjs.com/package/dsh-boss-job)
 [![license](https://img.shields.io/npm/l/dsh-boss-job.svg)](LICENSE)
+[![M8ven Trust](https://m8ven.ai/api/mcp/badge?repo=gro83j/dsh-boss-job)](https://m8ven.ai/mcp/gro83j/dsh-boss-job)
 
 
 用 AI 帮你在 Boss 直聘上**快速筛岗位**——给**已经知道要投什么**的人：多轮访谈定偏好 → 复用你本机已登录的 Chrome 采集 → 硬筛 + AI 评分 → 输出可投递清单。

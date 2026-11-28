@@ -3,6 +3,7 @@
 [![CI](https://github.com/gro83j/dsh-boss-job/actions/workflows/ci.yml/badge.svg)](https://github.com/gro83j/dsh-boss-job/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/dsh-boss-job.svg)](https://www.npmjs.com/package/dsh-boss-job)
 [![license](https://img.shields.io/npm/l/dsh-boss-job.svg)](LICENSE)
+[![M8ven Trust](https://m8ven.ai/api/mcp/badge?repo=gro83j/dsh-boss-job)](https://m8ven.ai/mcp/gro83j/dsh-boss-job)
 
 
 Fast **job screening** for **Boss直聘** (Boss Zhipin) — built for people who **already know what role they want**: interview → collect jobs through your own logged-in Chrome → hard filters + AI scoring → a shortlist you can actually apply to.
